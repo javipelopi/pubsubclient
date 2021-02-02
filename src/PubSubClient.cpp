@@ -700,6 +700,48 @@ boolean PubSubClient::connected() {
     return rc;
 }
 
+// Javier Sanchez: Custom functions to reconnect after ESP32 deep sleep
+boolean PubSubClient::connected(uint16_t oldNextMsgId, unsigned long oldLastOutActivity, unsigned long oldLastInActivity, bool oldPingOutstanding, int oldState)
+{
+    boolean rc;
+    if (_client == NULL)
+    {
+        rc = false;
+    }
+    else
+    {
+        rc = (int)_client->connected();
+        if (!rc)
+        {
+            if (this->_state == MQTT_CONNECTED)
+            {
+                this->_state = MQTT_CONNECTION_LOST;
+                _client->flush();
+                _client->stop();
+            }
+        }
+        else
+        {
+            this->_state = oldState;
+            nextMsgId = oldNextMsgId;
+            lastOutActivity = oldLastOutActivity;
+            lastInActivity = oldLastInActivity;
+            pingOutstanding = oldPingOutstanding;
+            return this->_state == MQTT_CONNECTED;
+        }
+    }
+    return rc;
+}
+
+// Javier Sanchez: Custom functions to reconnect after ESP32 deep sleep
+void PubSubClient::getVariables(uint16_t *oldNextMsgId, unsigned long *oldLastOutActivity, unsigned long *oldLastInActivity, bool *oldPingOutstanding, int *oldState) {
+    *oldNextMsgId = nextMsgId;
+    *oldLastOutActivity = lastOutActivity;
+    *oldLastInActivity = lastInActivity;
+    *oldPingOutstanding = pingOutstanding;
+    *oldState = this->_state;
+}
+
 PubSubClient& PubSubClient::setServer(uint8_t * ip, uint16_t port) {
     IPAddress addr(ip[0],ip[1],ip[2],ip[3]);
     return setServer(addr,port);

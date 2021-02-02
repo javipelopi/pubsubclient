@@ -178,6 +178,9 @@ public:
    boolean connected();
    int state();
 
+   // Javier Sanchez: Custom functions to reconnect after ESP32 deep sleep
+   boolean connected(uint16_t nextMsgId, unsigned long lastOutActivity, unsigned long lastInActivity, bool pingOutstanding, int state);
+   void getVariables(uint16_t *nextMsgId, unsigned long *lastOutActivity, unsigned long *lastInActivity, bool *pingOutstanding, int *state);
 };
 
 
